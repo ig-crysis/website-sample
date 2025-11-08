@@ -1,37 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="singin.css" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      #msg {
+        font-weight: bold;
+        margin-top: 10px;
+        text-align: center;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="signup-box">
+      <h1>Sign Up</h1>
+      <form id="signupForm" action="/api/signin" method="post">
+        <label>First Name</label>
+        <input type="text" name="username" id="formb" required />
 
-<span style="font-family: verdana, geneva, sans-serif;"><!DOCTYPE html>
-    <html lang="en">
-      <head>
-        <title>Sign Up </title>
-        <link rel="stylesheet" href="singin.css" />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Roboto:wght@300&display=swap"
-          rel="stylesheet"
-        />
-      </head>
-      <body>
-        <div class="signup-box">
-          <h1>Sign Up</h1>
-          <form action="/api/signin" method="post">
-  <label>First Name</label>
-  <input type="text" name="username" id="formb" required />
+        <label>Email</label>
+        <input type="email" name="email" id="formb" required />
 
-  <label>Email</label>
-  <input type="email" name="email" id="formb" required />
+        <label>Password</label>
+        <input type="password" name="password" id="formb" required />
 
-  <label>Password</label>
-  <input type="password" name="password" id="formb" required />
+        <button class="sub" type="submit">Submit</button>
 
-  <button class="sub">Submit</button>
-</form>
+        <!-- Message area -->
+        <p id="msg"></p>
+      </form>
 
-               
-            <p class="para-2">
-              Already have an account? 
-              <a href="login.html">Login here</a>
-            </p>
-          </form>
-        </div>
-    
-      </body>
-    </html></span>
+      <p class="para-2">
+        Already have an account?
+        <a href="login.html">Login here</a>
+      </p>
+    </div>
+
+    <script>
+      const form = document.getElementById("signupForm");
+      const msg = document.getElementById("msg");
+
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+
+        const formData = new FormData(form);
+
+        try {
+          const res = await fetch("/api/signin", {
+            method: "POST",
+            body: new URLSearchParams(formData),
+          });
+
+          const data = await res.json();
+          msg.textContent = data.message;
+
+          if (res.ok) {
+            msg.style.color = "green";
+            form.reset();
+          } else {
+            msg.style.color = "red";
+          }
+        } catch (error) {
+          msg.textContent = "Something went wrong. Please try again.";
+          msg.style.color = "red";
+        }
+      });
+    </script>
+  </body>
+</html>
