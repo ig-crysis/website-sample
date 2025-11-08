@@ -6,11 +6,10 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Parse URL-encoded form data
     let body = "";
     await new Promise((resolve) => {
-      req.on("data", (chunk) => {
-        body += chunk.toString();
-      });
+      req.on("data", (chunk) => (body += chunk.toString()));
       req.on("end", resolve);
     });
 
@@ -27,12 +26,15 @@ export default async function handler(req, res) {
     const db = client.db("websiteDB");
     const users = db.collection("users");
 
+    // Check for existing user
     const existing = await users.findOne({ email });
     if (existing) {
       return res.status(400).json({ message: "User already exists" });
     }
 
+    // Save new user
     await users.insertOne({ username, email, password });
+
     return res.status(200).json({ message: "Account created successfully!" });
   } catch (err) {
     console.error("Error in signup:", err);
