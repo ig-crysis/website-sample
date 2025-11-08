@@ -5,39 +5,45 @@ const client = new MongoClient(process.env.MONGO_URI);
 export default async function handler(req, res) {
   if (req.method === "POST") {
     try {
-      // Parse form data from HTML form
+      // --- Parse URL-encoded form data ---
       let body = "";
-      req.on("data", chunk => {
-        body += chunk.toString();
+      await new Promise((resolve) => {
+        req.on("data", (chunk) => {
+          body += chunk.toString();
+        });
+        req.on("end", resolve);
       });
-      req.on("end", async () => {
-        const params = new URLSearchParams(body);
-        const username = params.get("username");
-        const email = params.get("email");
-        const password = params.get("password");
 
-        if (!username || !email || !password) {
-          return res.status(400).json({ message: "All fields are required" });
-        }
+      const params = new URLSearchParams(body);
+      const username = params.get("username");
+      const email = params.get("email");
+      const password = params.get("password");
 
-        await client.connect();
-        const db = client.db("websiteDB");
-        const users = db.collection("users");
+      console.log("Received:", { username, email, password });
 
-        // Check if user already exists
-        const existingUser = await users.findOne({ email });
-        if (existingUser) {
-          return res.status(400).json({ message: "User already exists" });
-        }
+      // --- Validation ---
+      if (!username || !email || !password) {
+        return res.status(400).json({ message: "All fields are required" });
+      }
 
-        // Insert new user
-        await users.insertOne({ username, email, password });
+      // --- Connect to MongoDB ---
+      await client.connect();
+      const db = client.db("websiteDB");
+      const users = db.collection("users");
 
-        return res.status(200).json({ message: "Account created successfully!" });
-      });
+      // --- Check if user already exists ---
+      const existing = await users.findOne({ email });
+      if (existing) {
+        return res.status(400).json({ message: "User already exists" });
+      }
+
+      // --- Save new user ---
+      await users.insertOne({ username, email, password });
+
+      return res.status(200).json({ message: "Account created successfully!" });
     } catch (err) {
-      console.error(err);
-      return res.status(500).json({ message: "Server error" });
+      console.error("Error:", err);
+      return res.status(500).json({ message: "Internal Server Error" });
     }
   } else {
     res.status(405).json({ message: "Method Not Allowed" });
