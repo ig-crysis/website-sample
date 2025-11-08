@@ -6,17 +6,20 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Parse URL-encoded form data
     let body = "";
     await new Promise((resolve) => {
-      req.on("data", (chunk) => {
-        body += chunk.toString();
-      });
+      req.on("data", (chunk) => (body += chunk.toString()));
       req.on("end", resolve);
     });
 
     const params = new URLSearchParams(body);
     const email = params.get("usermail");
     const password = params.get("pwd");
+
+    if (!email || !password) {
+      return res.status(400).json({ message: "Email and password are required" });
+    }
 
     const client = await clientPromise;
     const db = client.db("websiteDB");
